@@ -4,9 +4,22 @@
 
 #ifndef RAYTRACER_MATERIAL_HPP
 #define RAYTRACER_MATERIAL_HPP
-#include "../ray.hpp"
+#include "../Utils/ray.hpp"
 
-struct contact;
+class material;
+
+struct contact {
+    point3 p;
+    vec3 normal;
+    std::shared_ptr<material> mat_ptr;
+    double t;
+    bool front_face;
+
+    inline void set_face_normal(const ray& r, const vec3& original_normal) {
+        front_face = dot(r.getDir(), original_normal) < 0;
+        normal = front_face ? original_normal : -original_normal;
+    }
+};
 
 class material {
 public:

@@ -32,11 +32,11 @@ inline double abs(double value){
         return - value;
     return value;
 }
+static std::mt19937 generator(time(NULL));
+
 
 inline double random_double(double min = 0.0, double max = 1.0) {
-    static std::mt19937 generator;
     std::uniform_real_distribution<double> random(min,max);
-
     return random(generator);
 }
 
@@ -65,7 +65,7 @@ vec3 random_in_unit_disk() {
 }
 
 inline  bool near_zero(vec3 vec){
-    const auto epsilon = 1e-8;
+    const auto epsilon = 1e-3;
     return vec.length_squared() < epsilon;
 }
 

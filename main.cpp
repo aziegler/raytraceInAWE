@@ -8,21 +8,13 @@
 
 #include "Utils/vec3.hpp"
 #include "Utils/clocks.hpp"
-#include "ray.hpp"
+#include "Utils/ray.hpp"
 #include "Objects/sphere.hpp"
 #include "Utils/maths.hpp"
-#include "Objects/hittable_list.hpp"
-#include "camera.hpp"
-#include "Materials/diffuseMaterial.hpp"
-#include "Materials/metalMaterial.hpp"
-#include "Materials/fuzzyMetal.hpp"
-#include "Materials/dielectricMaterial.hpp"
+#include "Objects/world.hpp"
+#include "Utils/camera.hpp"
 #include "Utils/color.hpp"
 
-vector<color> rayTrace(const int image_width, const int image_height, const int height_start, const int height_end, const int samples_per_pixel, const int max_depth,
-                       const hittable_list &world, const camera &camera, vector<color> &image);
-
-void write_color_vector(vector<color> &image1);
 
 using namespace std;
 
@@ -31,7 +23,7 @@ color ray_color(const ray &r, const hittable &world, int depth) {
     if (depth <= 0)
         return color(0, 0, 0);
     contact contact_data;
-    auto is_hit = world.hit(r, 0.000000001, infinity, contact_data);
+    auto is_hit = world.hit(r, 0.001, infinity, contact_data);
     if (!is_hit) {
         vec3 unit_direction = r.getDir().unit_vector();
         auto t = 0.5 * (unit_direction.y() + 1.0);
@@ -47,47 +39,24 @@ color ray_color(const ray &r, const hittable &world, int depth) {
     }
 }
 
-hittable_list random_scene() {
-    hittable_list world;
-    double scene_width = 8;
-    double scene_depth = 8;
-
-    auto ground_material = make_shared<diffuseMaterial>(color(0.2, 0.2, 0.2));
-    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
-
-    for (int a = 0; a < 60; ++a) {
-
-        double radius = random_double(0.1, 0.7);
-        point3 center(random_double(-1.0, 1.0) * scene_width, radius, random_double(-1.0, 1.0) * scene_depth);
-        color color = random_color();
-
-        shared_ptr<material> sphere_material;
-        double mat_roll = random_double(0.0, 1.0);
-        if (mat_roll < 0.5) {
-            world.add(make_shared<sphere>(center, radius, make_shared<diffuseMaterial>(color)));
-        } else if (mat_roll < 0.9) {
-            world.add(make_shared<sphere>(center, radius, make_shared<fuzzyMetal>(color, radius)));
-        } else {
-            world.add(make_shared<sphere>(center, radius, make_shared<dielectricMaterial>(color, 1.5)));
-        }
+void write_color_vector(vector<color> &image1) {
+    for (auto normalIterator = image1.begin(); normalIterator != image1.end(); ++normalIterator) {
+        write_color(cout,*normalIterator);
     }
-    return world;
 }
 
-
 static atomic<int> remainingLines = 0;
-
 int main() {
 
     //Image
     const auto aspect_ratio = 16.0 / 9.0;
-    const int image_width = 2000;
+    const int image_width = 500;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 40;
+    const int samples_per_pixel = 150;
     const int max_depth = 100;
 
     //World
-    hittable_list world = random_scene();
+    world world = random_scene();
 
     //Camera
     camera camera(point3(12, 5, 3), point3(0, 0, 0), vec3(0, 1, 0), 30, aspect_ratio, 0.01);
@@ -133,16 +102,12 @@ int main() {
 
 }
 
-void write_color_vector(vector<color> &image1) {
-    for (auto normalIterator = image1.begin(); normalIterator != image1.end(); ++normalIterator) {
-        write_color(cout,*normalIterator);
-    }
-}
+
 
 vector<color> rayTrace(const int image_width, const int image_height,
                        const int height_start, const int height_end,
                        const int samples_per_pixel, const int max_depth,
-                       const hittable_list &world, const camera &camera, vector<color> &image) {
+                       const world &world, const camera &camera, vector<color> &image) {
 
 
     for (int j = height_start - 1; j >= height_end; --j) {

@@ -9,3 +9,6 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+/cmake-build-debug/RayTracer.cbp
+/cmake-build-debug/RayTracer.exe
+/cmake-build-debug/test.ppm

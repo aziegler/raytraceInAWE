@@ -6,7 +6,7 @@
 #define RAYTRACER_RAY_HPP
 
 
-#include "Utils/vec3.hpp"
+#include "vec3.hpp"
 
 class ray {
 
